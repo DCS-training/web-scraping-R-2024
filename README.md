@@ -15,12 +15,15 @@ This is an intermediate-level course. Students must have a basic background in R
 
 ## Schedule
 14:00-14:10 Introduction & housekeeping 
+
 14:10-14:30 Web scraping basics and HTML structure 
+
 14:30-15:00 HTML-based web scraping 
 
 Comfort break 
 
 15:10-15:30 Other methods for web scraping
+
 15:30-16:00 
 
 ## Additional resources
