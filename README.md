@@ -14,14 +14,14 @@ This intermediate workshop will teach you how to scrape data from the Internet u
 This is an intermediate-level course. Students must have a basic background in R. This includes understanding the basic data types in R; how to install and load packages; and how to use functions, pipes, and apply/map functions. Alternatively, the 'Introduction to Programming with R and RStudio' course counts as a prerequisite. 
 
 ## Schedule
-14:00-14:10 Introduction & housekeeping
-14:10-14:30 Web scraping basics and HTML structure
-14:30-15:00 HTML-based web scraping
+14:00-14:10 Introduction & housekeeping 
+14:10-14:30 Web scraping basics and HTML structure 
+14:30-15:00 HTML-based web scraping 
 
-Comfort break
+Comfort break 
 
 15:10-15:30 Other methods for web scraping
-15:30-16:00 Browser automation 
+15:30-16:00 
 
 ## Additional resources
 
