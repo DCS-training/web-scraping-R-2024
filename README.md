@@ -4,7 +4,7 @@
 A workshop covering the basics of collecting data from the Internet using web scraping in R.
 
 ## Getting ready
-You'll need to install the SelectorGadget extension for the Chrome browser in addition to making sure you're able to access the University's Noteable service. 
+You'll need to install the SelectorGadget extension for the Chrome browser in addition to ensuring you have access to R/RStudio. You can use R/RStudio on the University's Noteable service, which requires no installation. You can also install R/Rstudio locally on your computer.
 
 ### Installing SelectorGadget
 1. Open the Chrome browser. If you don't have Chrome, you can install it [here](https://www.google.com/intl/en_uk/chrome/dr/download/?brand=GBSK&ds_kid=43700079594422197&gad_source=1&gclid=CjwKCAjw68K4BhAuEiwAylp3kjjhQbHyA1O0gttd5L0f0a48baOHb_zDWgZlWXotXEhTdnld7o1szRoCRSoQAvD_BwE&gclsrc=aw.ds).
@@ -23,6 +23,18 @@ You'll need to install the SelectorGadget extension for the Chrome browser in ad
 7. Select 'Create Project'.
    
 Congratulations! You have now pulled the content of this repository to your Notable server space.
+
+### Installing R/RStudio locally
+1. Go to (https://www.r-project.org/)[https://www.r-project.org/]
+2. Go to the download link
+3. Choose the closest CRAN mirror (if you're in Edinburgh, select either Bristol or Imperial College London)
+4. Download the version compatible with your operating system (Windows/Mac/Linux)
+- For Windows: click on install R for the first time. Then download R for Windows and follow the installation widget. If you get stuck, follow this (video tutorial)[https://www.youtube.com/watch?v=GAGUDL-4aVw]
+- For Mac: download the most recent pkg file and follow the installation widget. If you get stuck, follow this (video tutorial)[https://www.youtube.com/watch?v=EmZqlcKkJMM]
+5. Once R is installed, you can install R studio (R interface)
+6. Go to (www.rstudio.com)[www.rstudio.com]
+7. Find the download page
+8. Download the version compatible with your operating system 
 
 ## Overview
 This intermediate workshop will teach you how to scrape data from the Internet using R. We will start with a theoretical introduction to web scraping and specific approaches to scraping static websites with a focus on HTML tags. Then, we will practice using rvest to scrape data from a webpage. Finally, we will discuss methods for scraping information from webpages with a more complex structure.  
