@@ -1,0 +1,432 @@
+---
+title: "web_scraping_oct_24"
+output: html_document
+date: "2024-10-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Web Scraping in R
+
+21 October 2024
+
+## Setting up
+
+Install the packages we will be using today...
+
+```{r packages}
+install.packages('tidyverse')
+install.packages('rvest')
+```
+
+...and import them.
+
+```{r import}
+library(tidyverse)
+library(rvest)
+```
+
+## Rvest basics
+
+The preferred approach to web scraping in R is functional, and so we will write and map functions over our HTML.
+
+In rvest, the typical approach is to figure out the task we want to perform, write a function to perform this task, and then map the function over a list of objects.
+
+Rvest uses tidyverse-style programming (functions chained together using pipes). To extract information from the HTML object, we need to locate the CSS selector of the desired element and its attributes, which we will save in a variable.
+
+You can read more about pipes in R at <https://cfss.uchicago.edu/notes/pipes>, and more about rvest at rvest.tidyverse.org.
+
+## Scraping a single page
+
+### Downloading HTML
+
+Let's start by scraping some content from the RBloggers webpage, which contains information and tutorials for R.
+
+The first step is to download the HTML for a webpage using the read_html function with the website's URL as the parameter.
+
+```{r basic rvest example, echo=TRUE}
+webpage <- read_html('https://www.r-bloggers.com/')
+
+```
+
+Now, we can have a look at the HTML structure:
+
+```{r inspect, echo=TRUE}
+webpage
+```
+
+### Scraping text
+
+Let's create a new variable for the page's logo as text using the CSS selector to identify it. (Hint: SelectorGadget can make this easier!)
+
+```{r simple example, echo=TRUE}
+page_logo <- webpage %>%
+  html_node('.logo-wrap') %>%
+  html_text()
+```
+
+Print the variable to see what we've downloaded:
+
+```{r print text, echo=TRUE}
+page_logo
+```
+
+Changing 'node' to 'nodes' will select all of the elements with the attribute and save them as a list object. Let's do this for the article title on the page, and print the list:
+
+```{r titles, echo=TRUE}
+titles <- webpage %>%
+  html_nodes('h3 a') %>%
+  html_text()
+titles
+```
+
+### Scraping images
+
+We can do the same thing for images by choosing their HTML selectors and using the 'src' attribute:
+
+```{r images, echo=TRUE}
+images <- webpage %>%
+  html_nodes('img') %>%
+  html_attr('src')
+```
+
+Let's see the first two elements in the list of images:
+
+```{r images, echo=TRUE}
+images[1:2]
+```
+
+To see the images themselves, we'll need to open and save them as .jpg files. Let's do this for the first image in the list:
+
+```{r view images, echo=TRUE}
+download.file(images[1], c('r_bloggers.jpg'), mode = 'wb')
+```
+
+## Exercise 1: basic web scraping
+
+On your own, repeat the steps above on the Wikipedia homepage.
+
+First, download the HTML for <https://en.wikipedia.org/wiki/Main_Page>:
+
+```{r code goes here}
+
+
+```
+
+Next, view the HTML structure:
+
+```{r code goes here}
+
+
+
+```
+
+Scrape the headings for the homepage features ('From today's featured article', 'In the news', etc.)
+
+```{r code goes here}
+
+
+
+
+
+```
+
+Scrape the text of the homepage features:
+
+```{r code goes here}
+
+
+
+
+
+```
+
+## More advanced scraping
+
+Often, when undertaking a web scraping project, we find we'll need to download content from multiple pages or multiple locations.
+
+The Connosr database contains a variety of whisky reviews, ratings, and information. The website is structured with information nested under the main URL, www.connosr.com.
+
+(<https://www.connosr.com/>)[<https://www.connosr.com/>]
+
+Here is the structure of the webpage: ![StructureWebsite](images/WebsiteStructure.jpg)
+
+We're interested in scraping data about Scottish whisky, located in the (Scotch Whiskys sub-folder)[<https://www.connosr.com/scotch-whisky>]. Let's save the URL in a new variable:
+
+```{r homepage, echo=TRUE}
+whiskypage <- 'https://www.connosr.com/scotch-whisky'
+```
+
+## Level 1: Home Page
+
+### Extracting information from links
+
+Let's get the links to all of the Scottish whisky distilleries listed on the page. Once we have the list, we'll be able to use a spider to 'crawl' through our links one at a time, extracting information about each distillery.
+
+We'll create a function that uses the CSS selectors to grab the HTML nodes for the names and the corresponding HTML attributes:
+
+```{r list distilleries, echo=TRUE}
+get.article.links <- function(x){
+  links <- read_html(x) %>%
+    html_nodes('.name') %>%
+    html_attr('href')
+}
+```
+
+Then, we'll map the function onto the webpage to download the links:
+
+```{r map article links, echo=TRUE}
+DistLinks <- map(whiskypage, get.article.links) 
+```
+
+How long is the list of links?
+
+```{r print length, echo=TRUE}
+length(DistLinks)
+```
+
+### Flattening lists and function mapping
+
+Hmmm. It looks like we've downloaded a list of lists, rather than a list. This will make it difficult to map over our variable, since each item has multiple items within it. So we need to use the flatten function to deal with this:
+
+```{r List distilleries cleaning}
+DistLinksFlat <- flatten(DistLinks) 
+
+head(DistLinksFlat) # See how it changed
+
+length(DistLinksFlat) # Check new length
+
+Links <-unlist(DistLinksFlat) #Unlist the object as a vector
+
+```
+
+Now, we need to add the homepage to our list of links:
+
+```{r Add Full Links}
+FullLinks<- paste0("https://www.connosr.com", Links)
+
+```
+
+Using a function, we can extract the names of the distilleries by selecting the HTML node.
+
+```{r Get Names Distilleries}
+get.dist.names <- function(x){
+  names <- read_html(x) %>%
+    html_nodes('.name') %>%
+    html_text()
+}
+
+DistNames <- map(whiskypage, get.dist.names) 
+
+length(DistNames)
+```
+
+As in the example above, we'll need to flatten the links once again.
+
+```{r FlatNames, echo=FALSE}
+DistNamesFlat <-flatten(DistNames)
+
+length(DistNamesFlat)
+
+DistNamesFlat <-unlist(DistNamesFlat)
+
+head(DistNamesFlat)
+```
+
+### Cleaning scraped text
+
+Data scraped from the web often needs some cleaning. As the output of the previous block shows us, the distillery names are preceded by an extra letter.
+
+Using regex, we'll go ahead and remove the extra letters:
+
+```{r Remove extra letters}
+cleanedNames <- sub("^\\w+\\s", "",DistNamesFlat)#using regex 
+```
+
+Let's see how it looks:
+
+```{r check output}
+cleanedNames
+```
+
+Now, we have a list of the Scottish distilleries in the Connosr database. We might also be interested in seeing how community members have rated them.
+
+We can write a function to map over the webpage that scrapes the rating for each distillery using the HTML nodes:
+
+```{r Rate Disitlleries}
+get.rate.dist <- function(x){ #define the function
+  links <- read_html(x) %>%
+    html_nodes('.not-small-phone') %>%
+    html_text()
+}
+
+RateDist <- map(whiskypage, get.rate.dist)#map the function onto the webpage
+
+```
+
+Again, we'll need to flatten the object:
+
+```{r Clean Rate}
+RateDistFlat <-flatten(RateDist)
+
+head(RateDistFlat)
+length(RateDistFlat)
+
+RateDist<-unlist(RateDistFlat)
+
+```
+
+We'll also want to remove the 'Average Rating: ' appended to each distillery's rating:
+
+```{r Clean Rate3}
+cleanedRateDist <- sub("Average rating: ", "", RateDist)
+cleanedRateDist <-as.numeric(cleanedRateDist)
+```
+
+To save the information we've extracted, we can merge it into a dataframe:
+
+```{r dataframe}
+distillery_df<-data.frame(Link=FullLinks, Name=cleanedNames, Rating=cleanedRateDist)
+
+```
+
+## Exercise 2: Level 1 scraping
+
+On your own, use what we've learned to scrape a list of whisky distilleries for another region on Connosr.
+
+First, save the URL for the page.
+
+```{r code here}
+
+```
+
+Next, download the links by grabbing the HTML nodes for the names of distilleries and the corresponding HTML attributes. (Hint: we've already defined the function get.article.links in the previous step, so you'll just need to map it onto the new URL!)
+
+```{r code here}
+ 
+```
+
+Now, you'll need to flatten the list of links:
+
+```{r code here}
+
+
+```
+
+According to the Connosr databased, how many whisky distilleries are in the new region you've explored?
+
+```{r code here}
+
+
+```
+
+## Level 2: Distilleries pages
+
+At this point in the lesson, we'll be scraping multiple pages for information. So, you may find that the blocks of code may take longer to run.
+
+We're going to repeat the process of writing a function to download the links for reviews for specific bottles
+
+```{r Bottle Links}
+get.bottle.link <- function(x){
+  links <- read_html(x) %>%
+    html_nodes('.name') %>%
+    html_attr('href')
+}
+BottleLinks <- map(FullLinks, get.bottle.link)
+
+```
+
+### Completing partial URLs
+
+The links are incomplete, with only part of the URL path. Let's fix this:
+
+```{r Clean bottle links}
+#We need to use the flatten function to deal with this
+BottleLinksFlat <-flatten(BottleLinks)
+head(BottleLinksFlat)
+length(BottleLinksFlat)
+BottleLink <-unlist(BottleLinksFlat)
+FullLinksBottle<- paste0("https://www.connosr.com", BottleLink)
+head(FullLinksBottle)
+```
+
+### Extracting information from links
+
+Now we have the links of each bottle page. We also want to get the name of each bottle:
+
+```{r Get names bottles}
+get.bottle.name <- function(x){
+  links <- read_html(x) %>%
+    html_nodes('.name') %>%
+    html_text()
+}
+
+BottleName<- map(FullLinks, get.bottle.name )
+
+```
+
+Again, we'll flatten the links:
+
+```{r Clean names}
+
+BottleNameFlat <- flatten(BottleName)
+head(BottleNameFlat)
+length(BottleNameFlat)
+
+BottleNames <-unlist(BottleNameFlat)
+```
+
+## Level 3: Reviews
+
+### Downloading reviews
+
+The full list of reviewed bottles includes 3,508 observations. To save time, we are going to work on a subset of the list of links. (If you want to work on the full list, please note that it can take up to 10 minutes for each function to run. You can work with the full list by subbing "TestLinks" with "FullLinksBottle".)
+
+```{r SubsetBottleDataset}
+TestLinks<-head(FullLinksBottle, 100)
+```
+
+```{r Get reviews}
+get.bottle.reviews <- function(x){
+  links <- read_html(x) %>%
+    html_nodes('.simple-review-content p') %>%
+    html_text()
+}
+
+BottleReviews<- map(TestLinks, get.bottle.reviews)
+```
+
+Now, we have a very long list of reviews! Let's have a look at the reviews for the first bottle:
+
+```{r view reviews}
+BottleReviews[1]
+```
+
+### Merging scraped data
+
+We can do this using a combination of lapply and unlist:
+
+```{r Mergesublists}
+merged_lists <- lapply(BottleReviews, unlist)
+```
+
+Convert merged list to character vectors and concatenate them into a single string. We can do this by using sapply and concatenating each review with a space:
+
+```{r Mergesublists2}
+merged_strings <- sapply(merged_lists, function(x) paste(x, collapse = " "))
+```
+
+```{r Mergesublists3}
+ReviewByBottle <- data.frame(review = merged_strings)
+
+# Create a dataframe with the original vector and its index
+WithBottleNames <- data.frame(BottleName = head(BottleNames,100), review= ReviewByBottle$review)
+```
+
+```{r end}
+head(WithBottleNames)
+```
+
+# The end!
